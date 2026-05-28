@@ -1,0 +1,60 @@
+.theme-dark {
+  --color-bg: #11161d;
+  --color-surface: #18212b;
+  --color-surface-alt: #223041;
+  --color-text: #e8edf3;
+  --color-text-muted: #93a1b1;
+  --color-accent: #7fa2c9;
+  --color-accent-text: #0f151d;
+  --color-border: #2f4155;
+  --color-error: #ff7b7b;
+  --color-overlay: rgba(9, 12, 17, 0.82);
+}
+
+.theme-light {
+  --color-bg: #f4f3ef;
+  --color-surface: #ffffff;
+  --color-surface-alt: #ece9e0;
+  --color-text: #18181b;
+  --color-text-muted: #68686d;
+  --color-accent: #18181b;
+  --color-accent-text: #fafaf8;
+  --color-border: #d8d2c5;
+  --color-error: #cf3f31;
+  --color-overlay: rgba(24, 24, 27, 0.18);
+}
+
+body {
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent 28%),
+    linear-gradient(180deg, var(--color-surface-alt) 0%, var(--color-bg) 24%);
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  transition:
+    color var(--transition-base),
+    opacity var(--transition-base);
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+.theme-dark body {
+  background:
+    radial-gradient(circle at top left, rgba(127, 162, 201, 0.16), transparent 24%),
+    linear-gradient(180deg, #15202b 0%, #11161d 35%, #0d1218 100%);
+}
+
+#root {
+  min-height: 100vh;
+}

@@ -1,0 +1,54 @@
+.tutorial-spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.tutorial-spotlight__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(8, 10, 14, 0.62);
+}
+
+.tutorial-spotlight__focus {
+  position: fixed;
+  border-radius: calc(var(--radius-lg) + 0.25rem);
+  box-shadow:
+    0 0 0 9999px rgba(8, 10, 14, 0.58),
+    0 0 0 1px color-mix(in srgb, var(--color-accent) 72%, white),
+    0 24px 60px rgba(0, 0, 0, 0.32);
+  pointer-events: none;
+  transition: all 220ms ease;
+}
+
+.tutorial-spotlight__tooltip {
+  position: fixed;
+  width: min(20rem, calc(100vw - 2rem));
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-elevated);
+}
+
+.tutorial-spotlight__eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.tutorial-spotlight__tooltip p {
+  color: var(--color-text-muted);
+  line-height: 1.65;
+}
+
+.tutorial-spotlight__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

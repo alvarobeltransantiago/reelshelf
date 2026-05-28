@@ -1,0 +1,19 @@
+.rating-input {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.rating-input__header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.rating-input input {
+  accent-color: var(--color-accent);
+}
+
+.rating-input__error {
+  color: var(--color-error);
+  font-size: 0.875rem;
+}

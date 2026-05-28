@@ -1,0 +1,29 @@
+.not-found {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.not-found p {
+  font-size: 0.875rem;
+  letter-spacing: 0.3em;
+  color: var(--color-text-muted);
+}
+
+.not-found h1 {
+  max-width: 16ch;
+  font-size: clamp(2rem, 5vw, 4rem);
+}
+
+.not-found__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.875rem;
+  padding: 0 var(--space-4);
+  border: var(--border-thin) solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+}
