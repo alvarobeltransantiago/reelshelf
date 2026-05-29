@@ -19,7 +19,7 @@ El proyecto ya tiene implementada una v1 funcional:
 
 - Backend Express con auth JWT, refresh token httpOnly, CRUD de reseñas, biblioteca personal y Top 10.
 - Frontend React con landing pública, biblioteca protegida en `/library`, formularios, detalle de reseña, perfil minimalista y ajustes.
-- PostgreSQL con migraciones manuales `001` a `004` y seed de ejemplo.
+- PostgreSQL con migraciones manuales `001` a `006` y seed de ejemplo.
 - Stack fijado por decisión del desarrollador: Node.js 24 y PostgreSQL 18.
 
 Para nuevas tareas, no volver a ejecutar el plan inicial desde cero. Trabajar incrementalmente sobre esta base.

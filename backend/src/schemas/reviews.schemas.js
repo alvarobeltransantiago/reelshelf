@@ -63,6 +63,7 @@ export const updateReviewSchema = z.object({
       cover_url: z.string().url().max(500).optional().or(z.literal('')),
       rating: z.number().int().min(1).max(10).optional(),
       aspect_ratings: aspectRatingsSchema.optional(),
+      is_favorite: z.boolean().optional(),
       body: reviewBodySchema.optional(),
       tags: z.array(tagSchema).max(5).optional(),
       status: z.enum(['published', 'draft']).optional(),

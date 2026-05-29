@@ -7,14 +7,21 @@ import { truncate } from '../../utils/truncate'
 import { getCategoryLabel } from '../../utils/reviewOptions'
 import './ReviewCard.css'
 
-function ReviewCard({ review, onToggleTopReview, isTopReview = false, showTopControls = false }) {
+function ReviewCard({
+  review,
+  onToggleFavorite,
+  onToggleTopReview,
+  isTopReview = false,
+  showTopControls = false,
+  variant = 'card',
+}) {
   function handleImageError(event) {
     event.currentTarget.style.display = 'none'
     event.currentTarget.nextElementSibling.hidden = false
   }
 
   return (
-    <article className="review-card">
+    <article className={`review-card review-card--${variant}`}>
       <Link to={`/review/${review.id}`} className="review-card__cover-wrapper" aria-label={`Abrir ${review.title}`}>
         {review.cover_url ? (
           <img
@@ -22,6 +29,7 @@ function ReviewCard({ review, onToggleTopReview, isTopReview = false, showTopCon
             src={review.cover_url}
             alt={`Portada de ${review.title}`}
             loading="lazy"
+            decoding="async"
             onError={handleImageError}
           />
         ) : null}
@@ -32,7 +40,14 @@ function ReviewCard({ review, onToggleTopReview, isTopReview = false, showTopCon
 
       <div className="review-card__content">
         <div className="review-card__meta">
-          <Badge tone="accent">{getCategoryLabel(review.category)}</Badge>
+          <div className="review-card__meta-group">
+            <Badge tone="accent">{getCategoryLabel(review.category)}</Badge>
+            {review.is_favorite ? (
+              <Badge tone="favorite" aria-label="Favorita" title="Favorita">
+                ♥
+              </Badge>
+            ) : null}
+          </div>
           <span>{review.rating}/10</span>
         </div>
 
@@ -54,12 +69,22 @@ function ReviewCard({ review, onToggleTopReview, isTopReview = false, showTopCon
             <Link className="review-card__link" to={`/review/${review.id}`}>
               Ver reseña
             </Link>
-            {showTopControls && !isTopReview ? (
+            {showTopControls ? (
               <Button type="button" variant="ghost" onClick={() => onToggleTopReview?.(review.id)}>
-                Top 10
+                {isTopReview ? 'Quitar Top 10' : 'Top 10'}
               </Button>
             ) : null}
-            {showTopControls && isTopReview ? <span className="review-card__top-state">En Top 10</span> : null}
+            {showTopControls ? (
+              <Button
+                type="button"
+                variant="ghost"
+                aria-label={review.is_favorite ? 'Quitar de favoritas' : 'Marcar como favorita'}
+                title={review.is_favorite ? 'Quitar de favoritas' : 'Marcar como favorita'}
+                onClick={() => onToggleFavorite?.(review)}
+              >
+                {review.is_favorite ? '♥' : '♡'}
+              </Button>
+            ) : null}
           </div>
         </div>
       </div>

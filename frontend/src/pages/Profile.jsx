@@ -97,6 +97,18 @@ function Profile() {
       link.download = filename
       link.click()
       URL.revokeObjectURL(url)
+      pushToast({
+        tone: 'success',
+        title: 'Backup descargado',
+        message: 'El archivo SQL se ha generado correctamente.',
+      })
+    },
+    onError(error) {
+      pushToast({
+        tone: 'error',
+        title: 'No se pudo descargar',
+        message: error.message || 'Inténtalo de nuevo más tarde.',
+      })
     },
   })
 

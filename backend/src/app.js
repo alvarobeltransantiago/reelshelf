@@ -11,10 +11,12 @@ import usersRoutes from './routes/users.routes.js'
 import { sendSuccess } from './utils/response.js'
 
 const app = express()
-const allowedOrigins = (process.env.CORS_ORIGIN || '')
+const defaultAllowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173']
+const configuredOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean)
+const allowedOrigins = configuredOrigins.length ? configuredOrigins : defaultAllowedOrigins
 
 app.use(
   cors({

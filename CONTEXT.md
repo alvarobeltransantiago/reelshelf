@@ -98,6 +98,7 @@ Page -> TanStack Query/useMutation -> api/* -> fetch wrapper
 
 - Los componentes no llaman a `fetch` directamente.
 - `src/api/client.js` centraliza `credentials: 'include'`, Authorization y refresh automático.
+- Los toasts se configuran explícitamente por acción desde `src/api/*`; no dependen solo del método HTTP.
 - `authStore` mantiene access token y usuario.
 - `themeStore` aplica `theme-dark` o `theme-light` sobre `<html>`.
 - Cada página/componente con estilos propios importa su CSS.
@@ -107,8 +108,9 @@ Page -> TanStack Query/useMutation -> api/* -> fetch wrapper
 - Access token en memoria.
 - Refresh token httpOnly en cookie.
 - Silent refresh en `main.jsx` mediante `AuthBootstrap`.
+- `AuthBootstrap` reintenta una vez el refresh ante fallos transitorios antes de limpiar la sesión.
 - `VITE_API_URL` debe coincidir con el host usado en navegador. En local se usa `http://127.0.0.1:3001/api/v1`.
-- Backend acepta `http://localhost:5173` y `http://127.0.0.1:5173` en CORS.
+- Backend acepta `http://localhost:5173` y `http://127.0.0.1:5173` en CORS incluso si `CORS_ORIGIN` no está definido en desarrollo.
 
 ## Diseño
 
@@ -119,6 +121,7 @@ Page -> TanStack Query/useMutation -> api/* -> fetch wrapper
 - Colores siempre vía `var(--color-...)`.
 - Botones modernos tipo píldora desde `components/common/Button.css`.
 - Cards de reseña con portada cuadrada.
+- Biblioteca con vista cards/lista, favoritos sin ranking y Top 10 con mensajes ARIA al reordenar.
 - Landing usa `frontend/src/assets/hero-library-table.png`.
 - Logo y favicon tienen estética de estantería pixelada.
 
@@ -158,6 +161,7 @@ Migraciones actuales:
 003_create_refresh_tokens.sql
 004_expand_reviews_for_personal_library.sql
 005_category_top_and_wishlist.sql
+006_add_review_favorites.sql
 ```
 
 Frontend:

@@ -17,7 +17,9 @@
   overflow: hidden;
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: var(--color-surface-alt);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 38%),
+    var(--color-surface-alt);
   box-shadow: var(--shadow-soft);
 }
 
@@ -85,7 +87,9 @@
   padding: var(--space-3);
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 42%),
+    var(--color-surface);
 }
 
 .review-detail__aspect span {
@@ -98,7 +102,9 @@
   padding: var(--space-4);
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-gold) 9%, transparent), transparent 34%),
+    color-mix(in srgb, var(--color-surface) 92%, transparent);
   line-height: 1.7;
 }
 

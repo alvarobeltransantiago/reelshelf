@@ -20,7 +20,7 @@ No existe rol admin en v1.
 | Ruta | Acceso | Descripción |
 | --- | --- | --- |
 | `/` | Todos | Landing pública con imagen hero, frase inspiradora y CTA contextual. |
-| `/library` | Usuario | Biblioteca personal con pestañas, buscador reactivo, cards, paginación y Top 10 por categoría. |
+| `/library` | Usuario | Biblioteca personal con pestañas, buscador reactivo, vista cards/lista, favoritos, paginación y Top 10 por categoría. |
 | `/wishlist` | Usuario | Lista de deseos por categoría con CRUD y orden manual. |
 | `/login` | Visitante | Inicio de sesión. |
 | `/register` | Visitante | Registro. |
@@ -64,23 +64,28 @@ Cada reseña pertenece a un usuario y contiene:
 - `tags`: hasta 5 tags.
 - `status`: `published` o `draft`.
 - `top_rank`: posición opcional en Top 10.
+- `is_favorite`: marca opcional para destacar obras sin obligarlas a entrar en el Top 10.
 - `created_at` y `updated_at`.
 
-Las cards muestran portada cuadrada, categoría, nota, título, autor, extracto, fecha, enlace a detalle y acción para añadir al Top 10 si todavía no está incluido. Quitar elementos del Top 10 se hace desde el panel lateral.
+Las cards muestran portada cuadrada, categoría, nota, título, autor, extracto, fecha, enlace a detalle, acción para añadir al Top 10 si todavía no está incluido y acción para marcar favorito. Quitar elementos del Top 10 se hace desde el panel lateral.
 
 ## Biblioteca personal
 
 La biblioteca de `/library` es el centro de la app:
 
 - Pestañas por categoría: videojuegos, películas, series y libros.
-- 9 cards por página.
-- Ordenación por más recientes, más antiguas, mejor nota, menor nota, título A-Z, autor A-Z y Top 10 primero.
+- 9 reseñas por página con vista cards o lista compacta.
+- Ordenación por más recientes, más antiguas, mejor nota, menor nota, título A-Z, autor A-Z, favoritas primero y Top 10 primero.
 - Búsqueda por todo, título, autor o nota exacta.
 - Filtro por nota mínima.
 - Paginación.
+- Favoritos independientes del Top 10.
 - Panel lateral Top 10 con imagen, título y nota.
-- Top 10 reordenable con drag and drop y botones accesibles.
+- Debajo del Top 10 se muestran hasta 5 favoritos aleatorios de la categoría activa como recordatorio no ordenable, excluyendo las obras que ya estén en el Top 10.
+- Top 10 reordenable con drag and drop, botones accesibles y mensajes ARIA de posición.
+- Estados vacíos con ilustración sencilla y CTA contextual.
 - Tour/tutorial con spotlight la primera vez que se entra.
+- Música ambiente original, tranquila y opcional, activable desde el navbar.
 
 ## Portadas
 
@@ -158,6 +163,7 @@ DELETE /reviews/:id
 - `rating`
 - `aspect_ratings`
 - `top_rank`
+- `is_favorite`
 - `body`
 - `tags`
 - `status`
@@ -177,6 +183,7 @@ DELETE /reviews/:id
 - Un usuario solo puede editar o eliminar sus reseñas.
 - Un usuario solo puede ordenar en Top 10 reseñas propias.
 - `top_rank` es único por usuario cuando no es `NULL`.
+- `is_favorite` no afecta al ranking ni ocupa posiciones del Top 10.
 - La biblioteca propia puede mostrar borradores.
 - El perfil público no lista reseñas en la v1 actual.
 - La API nunca devuelve `password_hash`.

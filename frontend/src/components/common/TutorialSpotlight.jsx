@@ -32,6 +32,18 @@ function getTooltipStyle(rect) {
   }
 }
 
+function getStepTarget(step) {
+  if (step?.targetRef?.current) {
+    return step.targetRef.current
+  }
+
+  if (step?.targetSelector) {
+    return document.querySelector(step.targetSelector)
+  }
+
+  return null
+}
+
 function TutorialSpotlight({ steps, enabled, force = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
@@ -47,12 +59,12 @@ function TutorialSpotlight({ steps, enabled, force = false }) {
   }, [enabled, force])
 
   useEffect(() => {
-    if (!isOpen || !currentStep?.targetRef?.current) {
+    if (!isOpen || !currentStep) {
       return undefined
     }
 
     function updateRect() {
-      setRect(currentStep.targetRef.current?.getBoundingClientRect() || null)
+      setRect(getStepTarget(currentStep)?.getBoundingClientRect() || null)
     }
 
     updateRect()

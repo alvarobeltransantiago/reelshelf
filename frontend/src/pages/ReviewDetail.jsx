@@ -1,10 +1,10 @@
 import { Helmet } from 'react-helmet-async'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import ReactMarkdown from 'react-markdown'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useState } from 'react'
 
-import { deleteReview, getReview } from '../api/reviews'
+import { deleteReview, getReview, updateReview } from '../api/reviews'
 import useAuthStore from '../store/authStore'
 import Badge from '../components/common/Badge'
 import Button from '../components/common/Button'
@@ -17,12 +17,21 @@ import './ReviewDetail.css'
 function ReviewDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const currentUser = useAuthStore((state) => state.user)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['review-detail', id],
     queryFn: () => getReview(id),
+  })
+
+  const favoriteMutation = useMutation({
+    mutationFn: (nextFavorite) => updateReview(id, { is_favorite: nextFavorite }),
+    onSuccess(updatedReview) {
+      queryClient.setQueryData(['review-detail', id], updatedReview)
+      queryClient.invalidateQueries({ queryKey: ['my-library'] })
+    },
   })
 
   const deleteMutation = useMutation({
@@ -41,6 +50,7 @@ function ReviewDetail() {
   }
 
   const isOwner = currentUser?.id === data.user_id
+  const isFavorite = favoriteMutation.data?.is_favorite ?? data.is_favorite
 
   return (
     <article className="review-detail">
@@ -62,6 +72,11 @@ function ReviewDetail() {
             <div className="review-detail__meta">
               <Badge tone="accent">{getCategoryLabel(data.category)}</Badge>
               <span>{data.rating}/10</span>
+              {isFavorite ? (
+                <Badge tone="favorite" aria-label="Favorita" title="Favorita">
+                  ♥
+                </Badge>
+              ) : null}
               {data.top_rank ? <Badge>Top {data.top_rank}</Badge> : null}
               {data.status === 'draft' ? <Badge>Borrador</Badge> : null}
             </div>
@@ -76,6 +91,9 @@ function ReviewDetail() {
               <div className="review-detail__actions">
                 <Button variant="secondary" onClick={() => navigate(`/review/${id}/edit`)}>
                   Editar
+                </Button>
+                <Button variant="secondary" loading={favoriteMutation.isPending} onClick={() => favoriteMutation.mutate(!isFavorite)}>
+                  {isFavorite ? 'Quitar favorita' : 'Marcar favorita'}
                 </Button>
                 <Button variant="danger" onClick={() => setIsDeleteOpen(true)}>
                   Eliminar

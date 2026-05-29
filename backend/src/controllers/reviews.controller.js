@@ -13,6 +13,7 @@ const REVIEW_SELECT = `
   r.rating,
   r.aspect_ratings,
   r.top_rank,
+  r.is_favorite,
   r.body,
   r.tags,
   r.status,
@@ -110,7 +111,7 @@ export async function createReview(req, res, next) {
     const createdReview = await pool.query(
       `INSERT INTO reviews (user_id, title, author, category, cover_url, rating, aspect_ratings, body, tags, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING id, user_id, title, author, category, cover_url, rating, aspect_ratings, top_rank, body, tags, status, created_at, updated_at`,
+       RETURNING id, user_id, title, author, category, cover_url, rating, aspect_ratings, top_rank, is_favorite, body, tags, status, created_at, updated_at`,
       [
         req.user.id,
         review.title,
@@ -187,6 +188,7 @@ export async function updateReview(req, res, next) {
     if (req.validated.body.cover_url !== undefined) normalizedBody.cover_url = req.validated.body.cover_url ? sanitizeText(req.validated.body.cover_url) : null
     if (req.validated.body.rating !== undefined) normalizedBody.rating = req.validated.body.rating
     if (req.validated.body.aspect_ratings !== undefined) normalizedBody.aspect_ratings = normalizeAspectRatings(req.validated.body.aspect_ratings)
+    if (req.validated.body.is_favorite !== undefined) normalizedBody.is_favorite = req.validated.body.is_favorite
     if (req.validated.body.body !== undefined) normalizedBody.body = sanitizeMultilineText(req.validated.body.body)
     if (req.validated.body.tags !== undefined) normalizedBody.tags = req.validated.body.tags.map(normalizeTag)
     if (req.validated.body.status !== undefined) normalizedBody.status = req.validated.body.status
@@ -205,7 +207,7 @@ export async function updateReview(req, res, next) {
       `UPDATE reviews
        SET ${updates.join(', ')}
        WHERE id = $${values.length}
-       RETURNING id, user_id, title, author, category, cover_url, rating, aspect_ratings, top_rank, body, tags, status, created_at, updated_at`,
+       RETURNING id, user_id, title, author, category, cover_url, rating, aspect_ratings, top_rank, is_favorite, body, tags, status, created_at, updated_at`,
       values
     )
 

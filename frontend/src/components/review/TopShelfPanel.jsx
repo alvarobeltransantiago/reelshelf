@@ -1,6 +1,24 @@
+import { useState } from 'react'
+
 import './TopShelfPanel.css'
 
-function TopShelfPanel({ title = 'Favoritos', reviews, isSaving, onMove, onRemove }) {
+function TopShelfPanel({ title = 'Favoritos', reviews, onMove }) {
+  const [liveMessage, setLiveMessage] = useState('')
+
+  function moveReview(review, targetReview) {
+    if (!review || !targetReview || review.id === targetReview.id) {
+      return
+    }
+
+    const targetIndex = reviews.findIndex((item) => item.id === targetReview.id)
+
+    if (targetIndex >= 0) {
+      setLiveMessage(`${review.title} movido a posición ${targetIndex + 1}.`)
+    }
+
+    onMove(review.id, targetReview.id)
+  }
+
   return (
     <aside className="top-shelf">
       <div className="top-shelf__header">
@@ -9,7 +27,7 @@ function TopShelfPanel({ title = 'Favoritos', reviews, isSaving, onMove, onRemov
       </div>
 
       {reviews.length ? (
-        <ol className="top-shelf__list">
+        <ol className="top-shelf__list" aria-describedby="top-shelf-help">
           {reviews.map((review, index) => (
             <li
               key={review.id}
@@ -20,41 +38,35 @@ function TopShelfPanel({ title = 'Favoritos', reviews, isSaving, onMove, onRemov
               onDrop={(event) => {
                 event.preventDefault()
                 const draggedId = event.dataTransfer.getData('text/plain')
-                if (draggedId && draggedId !== review.id) {
-                  onMove(draggedId, review.id)
-                }
+                const draggedReview = reviews.find((item) => item.id === draggedId)
+                moveReview(draggedReview, review)
               }}
             >
               <div className="top-shelf__rank">{index + 1}</div>
               <div className="top-shelf__thumb">
-                {review.cover_url ? <img src={review.cover_url} alt={`Portada de ${review.title}`} loading="lazy" /> : <span>{review.rating}/10</span>}
+                {review.cover_url ? (
+                  <img src={review.cover_url} alt={`Portada de ${review.title}`} loading="lazy" decoding="async" />
+                ) : (
+                  <span>{review.rating}/10</span>
+                )}
               </div>
               <div className="top-shelf__copy">
                 <strong>{review.title}</strong>
                 <span>{review.rating}/10</span>
               </div>
-              <div className="top-shelf__controls">
-                <button type="button" aria-label="Subir" disabled={index === 0 || isSaving} onClick={() => onMove(review.id, reviews[index - 1]?.id)}>
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  aria-label="Bajar"
-                  disabled={index === reviews.length - 1 || isSaving}
-                  onClick={() => onMove(review.id, reviews[index + 1]?.id)}
-                >
-                  ↓
-                </button>
-                <button type="button" aria-label="Quitar del Top 10" disabled={isSaving} onClick={() => onRemove(review.id)}>
-                  ×
-                </button>
-              </div>
             </li>
           ))}
         </ol>
       ) : (
-        <p className="top-shelf__empty">Tu Top 10 esta vacio. Anade titulos desde la biblioteca.</p>
+        <p className="top-shelf__empty">Tu Top 10 está vacío. Añade títulos desde la biblioteca.</p>
       )}
+
+      <p id="top-shelf-help" className="top-shelf__assistive">
+        Puedes reordenar el Top 10 arrastrando una obra sobre otra.
+      </p>
+      <p className="top-shelf__assistive" aria-live="polite">
+        {liveMessage}
+      </p>
     </aside>
   )
 }

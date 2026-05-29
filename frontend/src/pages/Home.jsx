@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { getMyLibrary, updateMyTopReviews } from '../api/users'
+import { updateReview } from '../api/reviews'
 import useAuthStore from '../store/authStore'
 import Button from '../components/common/Button'
 import Spinner from '../components/common/Spinner'
@@ -16,6 +17,21 @@ import './Home.css'
 
 const LIBRARY_CLIENT_PAGE_SIZE = 9
 const LIBRARY_FETCH_LIMIT = 500
+const LIBRARY_SORT_OPTIONS = [
+  { value: 'newest', label: 'Más recientes' },
+  { value: 'oldest', label: 'Más antiguas' },
+  { value: 'rating_desc', label: 'Mejor nota' },
+  { value: 'rating_asc', label: 'Menor nota' },
+  { value: 'title_asc', label: 'Título A-Z' },
+  { value: 'author_asc', label: 'Autor A-Z' },
+  { value: 'favorites_first', label: 'Favoritas primero' },
+  { value: 'top_rank', label: 'Top 10 primero' },
+]
+const LIBRARY_SORT_VALUES = LIBRARY_SORT_OPTIONS.map((option) => option.value)
+
+function getSafeSort(value) {
+  return LIBRARY_SORT_VALUES.includes(value) ? value : 'newest'
+}
 
 function moveReviewInList(reviews, draggedId, targetId) {
   const nextReviews = [...reviews]
@@ -29,6 +45,95 @@ function moveReviewInList(reviews, draggedId, targetId) {
   const [draggedReview] = nextReviews.splice(draggedIndex, 1)
   nextReviews.splice(targetIndex, 0, draggedReview)
   return nextReviews
+}
+
+function scoreReminder(review, salt) {
+  const input = `${review.id}-${salt}`
+  let hash = 0
+
+  for (let index = 0; index < input.length; index += 1) {
+    hash = (hash * 31 + input.charCodeAt(index)) % 1000003
+  }
+
+  return hash
+}
+
+function compareText(firstValue = '', secondValue = '') {
+  return firstValue.localeCompare(secondValue, 'es', { sensitivity: 'base' })
+}
+
+function compareDateDesc(firstValue, secondValue) {
+  return new Date(secondValue).getTime() - new Date(firstValue).getTime()
+}
+
+function sortReviews(reviews, sort) {
+  const nextReviews = [...reviews]
+
+  return nextReviews.sort((firstReview, secondReview) => {
+    if (sort === 'favorites_first') {
+      const favoriteDifference = Number(secondReview.is_favorite) - Number(firstReview.is_favorite)
+
+      if (favoriteDifference !== 0) {
+        return favoriteDifference
+      }
+
+      return compareDateDesc(firstReview.created_at, secondReview.created_at)
+    }
+
+    if (sort === 'oldest') {
+      return new Date(firstReview.created_at).getTime() - new Date(secondReview.created_at).getTime()
+    }
+
+    if (sort === 'rating_desc') {
+      return secondReview.rating - firstReview.rating || compareDateDesc(firstReview.created_at, secondReview.created_at)
+    }
+
+    if (sort === 'rating_asc') {
+      return firstReview.rating - secondReview.rating || compareDateDesc(firstReview.created_at, secondReview.created_at)
+    }
+
+    if (sort === 'title_asc') {
+      return compareText(firstReview.title, secondReview.title) || compareDateDesc(firstReview.created_at, secondReview.created_at)
+    }
+
+    if (sort === 'author_asc') {
+      return compareText(firstReview.author, secondReview.author) || compareText(firstReview.title, secondReview.title)
+    }
+
+    if (sort === 'top_rank') {
+      return (firstReview.top_rank || 999) - (secondReview.top_rank || 999) || secondReview.rating - firstReview.rating
+    }
+
+    return compareDateDesc(firstReview.created_at, secondReview.created_at)
+  })
+}
+
+function FavoriteReminderPanel({ reviews }) {
+  return (
+    <aside className="home__reminder-panel" aria-label="Favoritos para recordar">
+      <div className="home__reminder-header">
+        <p>Favoritos</p>
+        <h2>Tampoco te olvides de...</h2>
+      </div>
+
+      {reviews.length ? (
+        <ul className="home__reminder-list">
+          {reviews.map((review) => (
+            <li key={review.id} className="home__reminder-item">
+              <Link to={`/review/${review.id}`}>
+                <span className="home__reminder-heart" aria-hidden="true">
+                  ♥
+                </span>
+                <span>{review.title}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="home__reminder-empty">Marca reseñas con corazón y aparecerán aquí como pequeños recordatorios.</p>
+      )}
+    </aside>
+  )
 }
 
 function PublicHome() {
@@ -86,31 +191,33 @@ export function LibraryHome() {
   const isAuthenticated = Boolean(user)
   const heroRef = useRef(null)
   const tabsRef = useRef(null)
+  const controlsRef = useRef(null)
   const gridRef = useRef(null)
   const topShelfRef = useRef(null)
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || 'game',
-    sort: searchParams.get('sort') || 'newest',
+    sort: getSafeSort(searchParams.get('sort')),
     page: Number(searchParams.get('page') || 1),
   })
   const [searchTerm, setSearchTerm] = useState('')
+  const [viewMode, setViewMode] = useState(() => window.localStorage.getItem('reelshelf-library-view') || 'cards')
+  const [reminderSalt] = useState(() => `${Date.now()}-${Math.random()}`)
 
   useEffect(() => {
     setFilters({
       category: searchParams.get('category') || 'game',
-      sort: searchParams.get('sort') || 'newest',
+      sort: getSafeSort(searchParams.get('sort')),
       page: Number(searchParams.get('page') || 1),
     })
   }, [searchParams])
 
   const libraryQuery = useQuery({
-    queryKey: ['my-library', filters.category, filters.sort],
+    queryKey: ['my-library', filters.category],
     queryFn: () =>
       getMyLibrary({
         category: filters.category,
-        sort: filters.sort,
         page: 1,
         limit: LIBRARY_FETCH_LIMIT,
       }),
@@ -124,12 +231,25 @@ export function LibraryHome() {
     },
   })
 
+  const favoriteMutation = useMutation({
+    mutationFn: (review) => updateReview(review.id, { is_favorite: !review.is_favorite }),
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ['my-library'] })
+      queryClient.invalidateQueries({ queryKey: ['review-detail'] })
+    },
+  })
+
   function updateFilters(nextFilters) {
     startTransition(() => {
-      setFilters(nextFilters)
+      const safeFilters = {
+        ...nextFilters,
+        sort: getSafeSort(nextFilters.sort),
+      }
+
+      setFilters(safeFilters)
 
       const params = new URLSearchParams()
-      Object.entries(nextFilters).forEach(([key, value]) => {
+      Object.entries(safeFilters).forEach(([key, value]) => {
         const isDefaultSort = key === 'sort' && value === 'newest'
 
         if (value && key !== 'page' && !isDefaultSort) {
@@ -159,12 +279,9 @@ export function LibraryHome() {
     rankingMutation.mutate({ category: filters.category, reviewIds: nextOrder })
   }
 
-  function handleRemoveTopReview(reviewId) {
-    const topReviews = (libraryQuery.data?.data.topReviews || []).filter((review) => review.category === filters.category)
-    rankingMutation.mutate({
-      category: filters.category,
-      reviewIds: topReviews.filter((review) => review.id !== reviewId).map((review) => review.id),
-    })
+  function handleViewModeChange(nextViewMode) {
+    setViewMode(nextViewMode)
+    window.localStorage.setItem('reelshelf-library-view', nextViewMode)
   }
 
   if (isBootstrapping) {
@@ -182,13 +299,20 @@ export function LibraryHome() {
   const { reviews, topReviews, counts } = libraryQuery.data.data
   const activeCategory = CATEGORY_TABS.find((tab) => tab.value === filters.category)
   const activeTopReviews = topReviews.filter((review) => review.category === filters.category)
+  const activeTopReviewIds = new Set(activeTopReviews.map((review) => review.id))
+  const reminderReviews = reviews
+    .filter((review) => review.is_favorite && !activeTopReviewIds.has(review.id))
+    .sort((firstReview, secondReview) => scoreReminder(firstReview, reminderSalt) - scoreReminder(secondReview, reminderSalt))
+    .slice(0, 5)
+  const favoriteCount = reviews.filter((review) => review.is_favorite).length
   const normalizedSearchTerm = searchTerm.trim().toLowerCase()
-  const filteredReviews = normalizedSearchTerm
+  const searchedReviews = normalizedSearchTerm
     ? reviews.filter((review) => {
         const haystack = [review.title, review.author, review.body].filter(Boolean).join(' ').toLowerCase()
         return haystack.includes(normalizedSearchTerm)
       })
     : reviews
+  const filteredReviews = sortReviews(searchedReviews, filters.sort)
   const totalPages = Math.max(1, Math.ceil(filteredReviews.length / LIBRARY_CLIENT_PAGE_SIZE))
   const currentPage = Math.min(filters.page, totalPages)
   const visibleReviews = filteredReviews.slice(
@@ -199,7 +323,7 @@ export function LibraryHome() {
     {
       targetRef: heroRef,
       title: 'Tu biblioteca empieza aqui',
-      description: 'Desde esta cabecera entiendes el tono general de tu archivo personal.',
+      description: 'Desde esta cabecera creas reseñas y el navbar te deja activar música ambiente cuando quieras.',
     },
     {
       targetRef: tabsRef,
@@ -207,14 +331,24 @@ export function LibraryHome() {
       description: 'Cada pestana separa videojuegos, peliculas, series y libros.',
     },
     {
+      targetRef: controlsRef,
+      title: 'Buscar, ordenar y cambiar vista',
+      description: 'Filtra por texto, ordena por nota, titulo, favoritas o Top 10, y alterna entre cards o lista compacta.',
+    },
+    {
       targetRef: gridRef,
-      title: 'Reseñas compactas',
-      description: 'Aqui ves tus fichas con busqueda reactiva por titulo, autor y descripcion.',
+      title: 'Cards con acciones rápidas',
+      description: 'Desde cada card puedes marcar favoritos y anadir o quitar una obra del Top 10.',
     },
     {
       targetRef: topShelfRef,
-      title: 'Top 10 por categoria',
-      description: 'Cada categoria tiene su propio ranking editable y reordenable.',
+      title: 'Ranking y recuerdos',
+      description: 'El Top 10 se reordena arrastrando. Debajo aparecen favoritos aleatorios que no esten ya rankeados.',
+    },
+    {
+      targetSelector: '.site-header__music-control',
+      title: 'Musica ambiente',
+      description: 'El icono musical abre un control con volumen, activar y apagar. La musica siempre empieza pausada.',
     },
   ]
 
@@ -252,13 +386,16 @@ export function LibraryHome() {
 
       <div className="home__library-layout">
         <div className="home__library-main">
-          <section className="home__control-deck" aria-label="Buscador de biblioteca">
+          <section ref={controlsRef} className="home__control-deck" aria-label="Buscador de biblioteca">
             <div className="home__control-copy">
               <h2>{activeCategory?.label}</h2>
-              <span>{filteredReviews.length} {filteredReviews.length === 1 ? 'resultado' : 'resultados'}</span>
+              <span>
+                {filteredReviews.length} {filteredReviews.length === 1 ? 'resultado' : 'resultados'} · {favoriteCount}{' '}
+                {favoriteCount === 1 ? 'favorita' : 'favoritas'}
+              </span>
             </div>
 
-            <div className="home__control-grid home__control-grid--simple">
+            <div className="home__control-grid home__control-grid--with-sort">
               <label className="home__field home__field--search">
                 <span>Buscar</span>
                 <input
@@ -271,24 +408,85 @@ export function LibraryHome() {
                   }}
                 />
               </label>
+              <label className="home__field">
+                <span>Ordenar</span>
+                <select
+                  value={filters.sort}
+                  onChange={(event) => updateFilters({ ...filters, sort: event.target.value, page: 1 })}
+                >
+                  {LIBRARY_SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="home__view-switch" aria-label="Vista de biblioteca">
+                <button
+                  type="button"
+                  className={viewMode === 'cards' ? 'home__view-switch-button--active' : ''}
+                  aria-label="Vista de cards"
+                  title="Vista de cards"
+                  onClick={() => handleViewModeChange('cards')}
+                >
+                  <span className="home__view-icon home__view-icon--cards" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={viewMode === 'list' ? 'home__view-switch-button--active' : ''}
+                  aria-label="Vista de lista"
+                  title="Vista de lista"
+                  onClick={() => handleViewModeChange('list')}
+                >
+                  <span className="home__view-icon home__view-icon--list" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                </button>
+              </div>
             </div>
           </section>
 
           <div ref={gridRef}>
             {visibleReviews.length ? (
-              <div className="home__grid">
+              <div className={`home__grid home__grid--${viewMode}`}>
                 {visibleReviews.map((review) => (
                   <ReviewCard
                     key={review.id}
                     review={review}
+                    variant={viewMode === 'list' ? 'list' : 'card'}
                     showTopControls
                     isTopReview={activeTopReviews.some((item) => item.id === review.id)}
+                    onToggleFavorite={favoriteMutation.mutate}
                     onToggleTopReview={handleToggleTopReview}
                   />
                 ))}
               </div>
             ) : (
-              <p className="home__state">No hay resultados en esta categoria.</p>
+              <div className="home__empty-state">
+                <div className="home__empty-illustration" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <h2>{normalizedSearchTerm ? 'No aparece nada en esta estantería' : 'Esta categoría todavía está esperando su primera obra'}</h2>
+                <p>
+                  {normalizedSearchTerm
+                    ? 'Prueba con otro título, autor o fragmento de la reseña.'
+                    : 'Empieza con una reseña breve y ya tendrás algo que ordenar, marcar como favorito o subir al Top 10.'}
+                </p>
+                {!normalizedSearchTerm ? (
+                  <Link className="home__new-review" to={`/review/new?category=${filters.category}`}>
+                    Crear primera reseña
+                  </Link>
+                ) : null}
+              </div>
             )}
           </div>
 
@@ -313,14 +511,13 @@ export function LibraryHome() {
           </div>
         </div>
 
-        <div ref={topShelfRef}>
+        <div ref={topShelfRef} className="home__side">
           <TopShelfPanel
             title={`Top 10 ${activeCategory?.label || ''}`}
             reviews={activeTopReviews}
-            isSaving={rankingMutation.isPending}
             onMove={handleMoveTopReview}
-            onRemove={handleRemoveTopReview}
           />
+          <FavoriteReminderPanel reviews={reminderReviews} />
         </div>
       </div>
     </section>

@@ -53,6 +53,16 @@ export async function createReview(payload) {
   const response = await apiRequest('/reviews', {
     method: 'POST',
     body: JSON.stringify(payload),
+    toast: {
+      success: {
+        title: 'Reseña guardada',
+        message: payload.status === 'draft' ? 'El borrador se ha guardado.' : 'La reseña se ha añadido a tu biblioteca.',
+      },
+      error: (payload) => ({
+        title: 'No se pudo guardar',
+        message: payload?.error?.message || 'Revisa los campos de la reseña.',
+      }),
+    },
   })
 
   return response.data
@@ -62,6 +72,23 @@ export async function updateReview(id, payload) {
   const response = await apiRequest(`/reviews/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
+    toast: {
+      success: payload.is_favorite !== undefined && Object.keys(payload).length === 1
+        ? {
+            title: payload.is_favorite ? 'Marcada como favorita' : 'Favorito retirado',
+            message: payload.is_favorite
+              ? 'Queda destacada sin ocupar un puesto del Top 10.'
+              : 'La reseña ya no está marcada como favorita.',
+          }
+        : {
+            title: 'Reseña actualizada',
+            message: 'Los cambios se han guardado correctamente.',
+          },
+      error: (payload) => ({
+        title: 'No se pudo actualizar',
+        message: payload?.error?.message || 'Revisa los cambios e inténtalo otra vez.',
+      }),
+    },
   })
 
   return response.data
@@ -70,6 +97,16 @@ export async function updateReview(id, payload) {
 export async function deleteReview(id) {
   const response = await apiRequest(`/reviews/${id}`, {
     method: 'DELETE',
+    toast: {
+      success: {
+        title: 'Reseña eliminada',
+        message: 'La entrada ha salido de tu biblioteca.',
+      },
+      error: (payload) => ({
+        title: 'No se pudo eliminar',
+        message: payload?.error?.message || 'Inténtalo de nuevo en unos segundos.',
+      }),
+    },
   })
 
   return response.data

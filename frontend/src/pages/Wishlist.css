@@ -31,7 +31,9 @@
   min-height: 3rem;
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface-alt);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 42%),
+    var(--color-surface-alt);
   color: var(--color-text);
   font-weight: 800;
   cursor: pointer;
@@ -50,7 +52,9 @@
 
 .wishlist-page__tab--active {
   border-color: var(--color-accent);
-  background: var(--color-surface);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 17%, transparent), transparent 42%),
+    var(--color-surface);
   box-shadow: var(--shadow-soft);
 }
 
@@ -75,6 +79,9 @@
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-gold) 10%, transparent), transparent 36%),
+    var(--color-surface);
 }
 
 .wishlist-form h2 {
@@ -103,6 +110,9 @@
   gap: var(--space-3);
   align-items: center;
   padding: var(--space-3);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 9%, transparent), transparent 38%),
+    var(--color-surface);
 }
 
 .wishlist-item__rank {

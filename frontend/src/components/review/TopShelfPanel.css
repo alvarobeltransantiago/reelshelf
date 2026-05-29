@@ -6,7 +6,9 @@
   padding: var(--space-4);
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-gold) 13%, transparent), transparent 36%),
+    var(--color-surface);
   box-shadow: var(--shadow-soft);
 }
 
@@ -34,18 +36,25 @@
 
 .top-shelf__item {
   display: grid;
-  grid-template-columns: 1.65rem 3.4rem minmax(0, 1fr) auto;
+  grid-template-columns: 1.65rem 3.4rem minmax(0, 1fr);
   gap: var(--space-2);
   align-items: center;
   min-height: 4.25rem;
   padding: var(--space-2);
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-surface-alt);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 11%, transparent), transparent 46%),
+    var(--color-surface-alt);
+  cursor: grab;
   transition:
     transform var(--transition-base),
     border-color var(--transition-base),
     background var(--transition-base);
+}
+
+.top-shelf__item:active {
+  cursor: grabbing;
 }
 
 .top-shelf__item:hover {
@@ -99,46 +108,12 @@
   font-size: 0.78rem;
 }
 
-.top-shelf__controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-}
-
-.top-shelf__controls button {
-  width: 1.65rem;
-  height: 1.65rem;
-  display: grid;
-  place-items: center;
-  border: var(--border-thin) solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  line-height: 1;
-  transition:
-    transform var(--transition-base),
-    background var(--transition-base),
-    color var(--transition-base);
-}
-
-.top-shelf__controls button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: var(--color-accent);
-  color: var(--color-accent-text);
-}
-
-.top-shelf__controls button:disabled {
-  opacity: 0.45;
-}
-
-@media (max-width: 520px) {
-  .top-shelf__item {
-    grid-template-columns: 1.65rem 3.4rem minmax(0, 1fr);
-  }
-
-  .top-shelf__controls {
-    grid-column: 2 / -1;
-    justify-content: flex-start;
-  }
+.top-shelf__assistive {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

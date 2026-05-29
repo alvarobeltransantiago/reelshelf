@@ -137,7 +137,9 @@
   padding: var(--space-3);
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface-alt);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 42%),
+    var(--color-surface-alt);
   color: var(--color-text);
   text-align: left;
   transition:
@@ -160,7 +162,9 @@
 }
 
 .home__tab--active {
-  background: var(--color-surface);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 44%),
+    var(--color-surface);
   border-color: var(--color-accent);
   transform: translateY(-0.12rem);
 }
@@ -176,6 +180,12 @@
   gap: var(--space-3);
 }
 
+.home__side {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+}
+
 .home__control-deck {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -184,7 +194,9 @@
   padding: var(--space-3);
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 34%),
+    color-mix(in srgb, var(--color-surface) 94%, transparent);
   box-shadow: var(--shadow-soft);
 }
 
@@ -212,6 +224,14 @@
 
 .home__control-grid--simple {
   grid-template-columns: minmax(14rem, 1fr);
+}
+
+.home__control-grid--with-view {
+  grid-template-columns: minmax(14rem, 1fr) auto;
+}
+
+.home__control-grid--with-sort {
+  grid-template-columns: minmax(14rem, 1fr) minmax(11rem, 0.45fr) auto;
 }
 
 .home__field {
@@ -270,10 +290,76 @@
   transform: translateY(-1px);
 }
 
+.home__view-switch {
+  display: inline-flex;
+  align-self: end;
+  gap: 0.15rem;
+  padding: 0.22rem;
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 48%),
+    color-mix(in srgb, var(--color-bg) 32%, var(--color-surface));
+}
+
+.home__view-switch button {
+  min-width: 2.45rem;
+  min-height: 2.1rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.home__view-switch button:hover,
+.home__view-switch-button--active {
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.home__view-icon {
+  display: grid;
+  width: 1.12rem;
+  height: 1.12rem;
+}
+
+.home__view-icon--cards {
+  grid-template-columns: repeat(2, 0.46rem);
+  grid-template-rows: repeat(2, 0.46rem);
+  gap: 0.2rem;
+}
+
+.home__view-icon--cards span {
+  display: block;
+  border-radius: 0.14rem;
+  background: currentColor;
+}
+
+.home__view-icon--list {
+  gap: 0.22rem;
+  align-content: center;
+}
+
+.home__view-icon--list span {
+  display: block;
+  width: 1.12rem;
+  height: 0.18rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
 .home__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
+}
+
+.home__grid--list {
+  grid-template-columns: 1fr;
 }
 
 .home__pagination {
@@ -288,7 +374,139 @@
   border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-lg);
   color: var(--color-text-muted);
-  background: var(--color-surface);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 34%),
+    var(--color-surface);
+}
+
+.home__empty-state {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: clamp(var(--space-5), 5vw, var(--space-7));
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 32%),
+    var(--color-surface);
+  color: var(--color-text-muted);
+  box-shadow: var(--shadow-soft);
+}
+
+.home__empty-state h2 {
+  max-width: 24rem;
+  color: var(--color-text);
+}
+
+.home__empty-state p {
+  max-width: 36rem;
+  line-height: 1.6;
+}
+
+.home__empty-illustration {
+  display: flex;
+  align-items: end;
+  gap: 0.35rem;
+  min-height: 3.8rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-alt));
+}
+
+.home__empty-illustration span {
+  width: 0.75rem;
+  border-radius: 0.2rem;
+  background: var(--color-accent);
+}
+
+.home__empty-illustration span:nth-child(1) {
+  height: 2.4rem;
+}
+
+.home__empty-illustration span:nth-child(2) {
+  height: 3rem;
+  opacity: 0.74;
+}
+
+.home__empty-illustration span:nth-child(3) {
+  height: 1.9rem;
+  opacity: 0.5;
+}
+
+.home__reminder-panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-error) 12%, transparent), transparent 34%),
+    var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.home__reminder-header {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.home__reminder-header p {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.home__reminder-header h2 {
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.home__reminder-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.home__reminder-item a {
+  display: grid;
+  grid-template-columns: 1.55rem minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+  min-height: 2.6rem;
+  padding: var(--space-2);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-surface-alt) 72%, transparent);
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.home__reminder-item a:hover {
+  border-color: color-mix(in srgb, var(--color-error) 48%, var(--color-border));
+  color: var(--color-text);
+}
+
+.home__reminder-item span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home__reminder-heart {
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-error) 14%, var(--color-surface));
+  color: var(--color-error);
+  font-size: 0.8rem;
+}
+
+.home__reminder-empty {
+  color: var(--color-text-muted);
+  line-height: 1.5;
 }
 
 @keyframes home-fade-up {
@@ -337,6 +555,10 @@
   .home__control-deck,
   .home__control-grid {
     grid-template-columns: 1fr;
+  }
+
+  .home__view-switch {
+    justify-self: start;
   }
 
   .home__cinema {

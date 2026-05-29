@@ -11,13 +11,13 @@
 
 .toast {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 0.7rem minmax(0, 1fr) auto;
   gap: var(--space-3);
-  align-items: start;
+  align-items: center;
   padding: var(--space-3);
   border: var(--border-thin) solid var(--toast-border);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--toast-bg) 90%, var(--color-surface));
+  background: color-mix(in srgb, var(--color-surface) 92%, var(--toast-bg));
   color: var(--color-text);
   box-shadow: var(--shadow-elevated);
   pointer-events: auto;
@@ -44,26 +44,39 @@
   gap: 0.15rem;
 }
 
-.toast__copy strong,
-.toast__copy span {
-  color: var(--color-accent-text);
+.toast__marker {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--toast-bg);
+  box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--toast-bg) 18%, transparent);
+}
+
+.toast__copy strong {
+  color: var(--color-text);
 }
 
 .toast__copy span {
+  color: var(--color-text-muted);
   font-size: 0.88rem;
   line-height: 1.35;
 }
 
 .toast button {
-  display: grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: 0;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-accent-text) 16%, transparent);
-  color: var(--color-accent-text);
+  min-height: 1.75rem;
+  padding: 0 0.55rem;
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
   cursor: pointer;
+}
+
+.toast button:hover {
+  color: var(--color-text);
+  border-color: var(--toast-border);
 }
 
 @keyframes toast-in {

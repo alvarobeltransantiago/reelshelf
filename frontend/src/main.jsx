@@ -51,8 +51,25 @@ function AuthBootstrap() {
     let cancelled = false
 
     async function bootstrapAuth() {
+      const maxAttempts = 2
+
       try {
-        const session = await refreshSession()
+        let session = null
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+          try {
+            session = await refreshSession()
+            break
+          } catch (error) {
+            if (error.status === 401 || attempt === maxAttempts) {
+              throw error
+            }
+
+            await new Promise((resolve) => {
+              window.setTimeout(resolve, 350)
+            })
+          }
+        }
 
         if (!cancelled) {
           setSession(session)

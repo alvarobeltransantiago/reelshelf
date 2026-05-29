@@ -15,3 +15,15 @@
   border-color: var(--color-accent);
   color: var(--color-accent-text);
 }
+
+.badge--favorite {
+  min-width: 1.9rem;
+  justify-content: center;
+  padding: 0 var(--space-2);
+  background: color-mix(in srgb, var(--color-error) 14%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-error) 48%, var(--color-border));
+  color: var(--color-error);
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-transform: none;
+}

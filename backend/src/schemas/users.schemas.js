@@ -7,7 +7,23 @@ const usernameSchema = z
   .regex(/^[A-Za-z0-9_]+$/, 'El username solo puede incluir letras, números y guion bajo')
 
 const categorySchema = z.enum(['game', 'movie', 'series', 'book'])
-const librarySortSchema = z.enum(['newest', 'oldest', 'rating_desc', 'rating_asc', 'title_asc', 'author_asc', 'top_rank'])
+const librarySortValues = [
+  'newest',
+  'oldest',
+  'updated_desc',
+  'rating_desc',
+  'rating_asc',
+  'title_asc',
+  'title_desc',
+  'author_asc',
+  'author_desc',
+  'favorites_first',
+  'top_rank',
+]
+const librarySortSchema = z.preprocess(
+  (value) => (librarySortValues.includes(value) ? value : undefined),
+  z.enum(librarySortValues).optional()
+)
 
 const avatarSchema = z
   .string()
@@ -49,7 +65,7 @@ export const meLibrarySchema = z.object({
     limit: z.coerce.number().int().min(1).max(500).optional(),
     category: categorySchema.optional(),
     q: z.string().max(200).optional(),
-    sort: librarySortSchema.optional(),
+    sort: librarySortSchema,
   }),
 })
 

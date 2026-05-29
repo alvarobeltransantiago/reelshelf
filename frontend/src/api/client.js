@@ -1,7 +1,7 @@
 import useAuthStore from '../store/authStore'
 import useToastStore from '../store/toastStore'
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/$/, '')
 let refreshPromise = null
 
 class ApiError extends Error {
@@ -15,7 +15,8 @@ class ApiError extends Error {
 }
 
 function buildUrl(path, query) {
-  const url = new URL(`${API_URL}${path}`)
+  const base = typeof window === 'undefined' ? 'http://localhost' : window.location.origin
+  const url = new URL(`${API_URL}${path}`, base)
 
   if (query) {
     Object.entries(query).forEach(([key, value]) => {
@@ -33,28 +34,30 @@ async function readJson(response) {
   return text ? JSON.parse(text) : null
 }
 
-function shouldToast(path, method) {
-  const normalizedMethod = method?.toUpperCase()
-  const isWriteMethod = ['POST', 'PATCH', 'DELETE'].includes(normalizedMethod)
-
-  if (!isWriteMethod) {
-    return false
-  }
-
-  return (
-    path.startsWith('/reviews') ||
-    path.startsWith('/users/me/wishlist') ||
-    path === '/users/me/top-reviews' ||
-    path === '/users/me'
-  )
-}
-
 function pushRequestToast(toast) {
   if (typeof window === 'undefined') {
     return
   }
 
   useToastStore.getState().pushToast(toast)
+}
+
+function resolveToast(config, payload, fallback) {
+  if (!config) {
+    return null
+  }
+
+  const resolved = typeof config === 'function' ? config(payload) : config
+
+  if (!resolved) {
+    return null
+  }
+
+  return {
+    tone: resolved.tone || fallback.tone,
+    title: resolved.title || fallback.title,
+    message: resolved.message || fallback.message,
+  }
 }
 
 async function attemptRefresh() {
@@ -96,19 +99,39 @@ async function attemptRefresh() {
  * @returns {Promise<any>}
  */
 export async function apiRequest(path, options = {}) {
-  const { query, skipAuthRetry = false, rawResponse = false, headers, ...restOptions } = options
+  const { query, skipAuthRetry = false, rawResponse = false, headers, toast, ...restOptions } = options
   const accessToken = useAuthStore.getState().accessToken
-  const method = restOptions.method || 'GET'
 
-  const response = await fetch(buildUrl(path, query), {
-    credentials: 'include',
-    ...restOptions,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...headers,
-    },
-  })
+  let response
+
+  try {
+    response = await fetch(buildUrl(path, query), {
+      credentials: 'include',
+      ...restOptions,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        ...headers,
+      },
+    })
+  } catch (error) {
+    const networkPayload = {
+      error: {
+        message: 'No se pudo conectar con el servidor.',
+      },
+    }
+    const errorToast = resolveToast(toast?.error, networkPayload, {
+      tone: 'error',
+      title: 'Sin conexión',
+      message: networkPayload.error.message,
+    })
+
+    if (errorToast) {
+      pushRequestToast(errorToast)
+    }
+
+    throw new ApiError(0, 'NETWORK_ERROR', networkPayload.error.message, error)
+  }
 
   if (rawResponse && response.ok) {
     return response
@@ -126,12 +149,14 @@ export async function apiRequest(path, options = {}) {
   }
 
   if (!response.ok) {
-    if (shouldToast(path, method)) {
-      pushRequestToast({
-        tone: 'error',
-        title: 'No se pudo completar',
-        message: payload?.error?.message || 'Revisa la peticion e intentalo de nuevo.',
-      })
+    const errorToast = resolveToast(toast?.error, payload, {
+      tone: 'error',
+      title: 'No se pudo completar',
+      message: payload?.error?.message || 'Revisa la petición e inténtalo de nuevo.',
+    })
+
+    if (errorToast) {
+      pushRequestToast(errorToast)
     }
 
     throw new ApiError(
@@ -142,13 +167,39 @@ export async function apiRequest(path, options = {}) {
     )
   }
 
-  if (shouldToast(path, method)) {
-    pushRequestToast({
-      tone: 'success',
-      title: 'Cambios guardados',
-      message: payload?.data?.message || 'La operacion se ha completado correctamente.',
-    })
+  const successToast = resolveToast(toast?.success, payload, {
+    tone: 'success',
+    title: 'Cambios guardados',
+    message: payload?.data?.message || 'La operación se ha completado correctamente.',
+  })
+
+  if (successToast) {
+    pushRequestToast(successToast)
   }
 
   return payload
+}
+
+export function notifyInfo(title, message) {
+  pushRequestToast({
+    tone: 'info',
+    title,
+    message,
+  })
+}
+
+export function notifySuccess(title, message) {
+  pushRequestToast({
+    tone: 'success',
+    title,
+    message,
+  })
+}
+
+export function notifyError(title, message) {
+  pushRequestToast({
+    tone: 'error',
+    title,
+    message,
+  })
 }

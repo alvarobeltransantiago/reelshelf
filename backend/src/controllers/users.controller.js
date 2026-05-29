@@ -12,6 +12,7 @@ const REVIEW_FIELDS = `
   r.rating,
   r.aspect_ratings,
   r.top_rank,
+  r.is_favorite,
   r.body,
   r.tags,
   r.status,
@@ -24,10 +25,14 @@ const REVIEW_FIELDS = `
 const LIBRARY_SORTS = {
   newest: 'r.created_at DESC, r.updated_at DESC',
   oldest: 'r.created_at ASC',
+  updated_desc: 'r.updated_at DESC, r.created_at DESC',
   rating_desc: 'r.rating DESC, r.created_at DESC',
   rating_asc: 'r.rating ASC, r.created_at DESC',
   title_asc: 'LOWER(r.title) ASC, r.created_at DESC',
+  title_desc: 'LOWER(r.title) DESC, r.created_at DESC',
   author_asc: 'LOWER(r.author) ASC, r.created_at DESC',
+  author_desc: 'LOWER(r.author) DESC, r.created_at DESC',
+  favorites_first: 'r.is_favorite DESC, r.updated_at DESC, r.created_at DESC',
   top_rank: 'r.top_rank ASC NULLS LAST, r.rating DESC, r.created_at DESC',
 }
 
@@ -97,7 +102,8 @@ export async function getMyLibrary(req, res, next) {
     const page = req.validated.query.page || 1
     const limit = req.validated.query.limit || LIBRARY_PAGE_SIZE
     const offset = (page - 1) * limit
-    const { category, q, sort = 'newest' } = req.validated.query
+    const { category, q } = req.validated.query
+    const sort = LIBRARY_SORTS[req.validated.query.sort] ? req.validated.query.sort : 'newest'
     const values = [req.user.id]
     const filters = ['r.user_id = $1']
 
@@ -702,7 +708,7 @@ export async function downloadMyBackup(req, res, next) {
         [req.user.id]
       ),
       pool.query(
-        `SELECT id, user_id, title, author, category, cover_url, rating, aspect_ratings, top_rank, body, tags, status, created_at, updated_at
+        `SELECT id, user_id, title, author, category, cover_url, rating, aspect_ratings, top_rank, is_favorite, body, tags, status, created_at, updated_at
          FROM reviews
          WHERE user_id = $1
          ORDER BY created_at ASC`,
@@ -735,9 +741,9 @@ ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, email = EXCLUDED.em
 
     reviewsResult.rows.forEach((review) => {
       lines.push(
-        `INSERT INTO reviews (id, user_id, title, author, category, cover_url, rating, aspect_ratings, top_rank, body, tags, status, created_at, updated_at)
-VALUES (${sqlString(review.id)}::uuid, ${sqlString(review.user_id)}::uuid, ${sqlString(review.title)}, ${sqlString(review.author)}, ${sqlString(review.category)}, ${sqlString(review.cover_url)}, ${review.rating}, ${sqlJson(review.aspect_ratings)}, ${review.top_rank ?? 'NULL'}, ${sqlString(review.body)}, ${sqlArray(review.tags)}, ${sqlString(review.status)}, ${sqlString(review.created_at.toISOString())}::timestamptz, ${sqlString(review.updated_at.toISOString())}::timestamptz)
-ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, author = EXCLUDED.author, category = EXCLUDED.category, cover_url = EXCLUDED.cover_url, rating = EXCLUDED.rating, aspect_ratings = EXCLUDED.aspect_ratings, top_rank = EXCLUDED.top_rank, body = EXCLUDED.body, tags = EXCLUDED.tags, status = EXCLUDED.status, updated_at = EXCLUDED.updated_at;`
+        `INSERT INTO reviews (id, user_id, title, author, category, cover_url, rating, aspect_ratings, top_rank, is_favorite, body, tags, status, created_at, updated_at)
+VALUES (${sqlString(review.id)}::uuid, ${sqlString(review.user_id)}::uuid, ${sqlString(review.title)}, ${sqlString(review.author)}, ${sqlString(review.category)}, ${sqlString(review.cover_url)}, ${review.rating}, ${sqlJson(review.aspect_ratings)}, ${review.top_rank ?? 'NULL'}, ${review.is_favorite ? 'TRUE' : 'FALSE'}, ${sqlString(review.body)}, ${sqlArray(review.tags)}, ${sqlString(review.status)}, ${sqlString(review.created_at.toISOString())}::timestamptz, ${sqlString(review.updated_at.toISOString())}::timestamptz)
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, author = EXCLUDED.author, category = EXCLUDED.category, cover_url = EXCLUDED.cover_url, rating = EXCLUDED.rating, aspect_ratings = EXCLUDED.aspect_ratings, top_rank = EXCLUDED.top_rank, is_favorite = EXCLUDED.is_favorite, body = EXCLUDED.body, tags = EXCLUDED.tags, status = EXCLUDED.status, updated_at = EXCLUDED.updated_at;`
       )
     })
 
