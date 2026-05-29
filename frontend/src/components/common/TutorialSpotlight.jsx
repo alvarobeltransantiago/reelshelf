@@ -32,7 +32,7 @@ function getTooltipStyle(rect) {
   }
 }
 
-function TutorialSpotlight({ steps, enabled }) {
+function TutorialSpotlight({ steps, enabled, force = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
   const [rect, setRect] = useState(null)
@@ -40,10 +40,11 @@ function TutorialSpotlight({ steps, enabled }) {
   const currentStep = steps[stepIndex]
 
   useEffect(() => {
-    if (enabled && !window.localStorage.getItem(TOUR_STORAGE_KEY)) {
+    if (enabled && (force || !window.localStorage.getItem(TOUR_STORAGE_KEY))) {
+      setStepIndex(0)
       setIsOpen(true)
     }
-  }, [enabled])
+  }, [enabled, force])
 
   useEffect(() => {
     if (!isOpen || !currentStep?.targetRef?.current) {

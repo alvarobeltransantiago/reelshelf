@@ -5,24 +5,26 @@ import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import PageWrapper from './components/layout/PageWrapper'
 import Spinner from './components/common/Spinner'
+import ToastViewport from './components/common/ToastViewport'
 import Home, { LibraryHome } from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
 import ReviewDetail from './pages/ReviewDetail'
 import ReviewForm from './pages/ReviewForm'
-import Settings from './pages/Settings'
+import Wishlist from './pages/Wishlist'
 import NotFound from './pages/NotFound'
 
 function AppLayout() {
   return (
-    <>
+    <div className="app-shell">
       <Header />
       <PageWrapper>
         <Outlet />
       </PageWrapper>
       <Footer />
-    </>
+      <ToastViewport />
+    </div>
   )
 }
 
@@ -70,9 +72,9 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/library" element={<LibraryHome />} />
+          <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/review/new" element={<ReviewForm />} />
           <Route path="/review/:id/edit" element={<ReviewForm />} />
-          <Route path="/settings" element={<Settings />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

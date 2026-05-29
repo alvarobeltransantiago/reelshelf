@@ -27,7 +27,9 @@
 
 .button:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--color-accent) 72%, var(--color-border));
+  border-color: var(--color-hover-border);
+  background: var(--color-hover-bg);
+  color: var(--color-hover-text);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, white 14%, transparent),
     0 12px 26px color-mix(in srgb, var(--color-accent) 18%, black 12%);
@@ -65,13 +67,18 @@
 }
 
 .button--ghost:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
+  background: var(--color-hover-bg);
 }
 
 .button--danger {
   border-color: color-mix(in srgb, var(--color-error) 68%, var(--color-border));
   color: var(--color-error);
   background: color-mix(in srgb, var(--color-error) 8%, var(--color-surface));
+}
+
+.button--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-error) 16%, var(--color-surface));
+  border-color: var(--color-error);
 }
 
 .button--full-width {

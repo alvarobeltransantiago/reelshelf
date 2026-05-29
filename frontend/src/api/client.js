@@ -1,4 +1,5 @@
 import useAuthStore from '../store/authStore'
+import useToastStore from '../store/toastStore'
 
 const API_URL = import.meta.env.VITE_API_URL
 let refreshPromise = null
@@ -30,6 +31,30 @@ function buildUrl(path, query) {
 async function readJson(response) {
   const text = await response.text()
   return text ? JSON.parse(text) : null
+}
+
+function shouldToast(path, method) {
+  const normalizedMethod = method?.toUpperCase()
+  const isWriteMethod = ['POST', 'PATCH', 'DELETE'].includes(normalizedMethod)
+
+  if (!isWriteMethod) {
+    return false
+  }
+
+  return (
+    path.startsWith('/reviews') ||
+    path.startsWith('/users/me/wishlist') ||
+    path === '/users/me/top-reviews' ||
+    path === '/users/me'
+  )
+}
+
+function pushRequestToast(toast) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  useToastStore.getState().pushToast(toast)
 }
 
 async function attemptRefresh() {
@@ -71,8 +96,9 @@ async function attemptRefresh() {
  * @returns {Promise<any>}
  */
 export async function apiRequest(path, options = {}) {
-  const { query, skipAuthRetry = false, headers, ...restOptions } = options
+  const { query, skipAuthRetry = false, rawResponse = false, headers, ...restOptions } = options
   const accessToken = useAuthStore.getState().accessToken
+  const method = restOptions.method || 'GET'
 
   const response = await fetch(buildUrl(path, query), {
     credentials: 'include',
@@ -83,6 +109,10 @@ export async function apiRequest(path, options = {}) {
       ...headers,
     },
   })
+
+  if (rawResponse && response.ok) {
+    return response
+  }
 
   const payload = await readJson(response)
 
@@ -96,12 +126,28 @@ export async function apiRequest(path, options = {}) {
   }
 
   if (!response.ok) {
+    if (shouldToast(path, method)) {
+      pushRequestToast({
+        tone: 'error',
+        title: 'No se pudo completar',
+        message: payload?.error?.message || 'Revisa la peticion e intentalo de nuevo.',
+      })
+    }
+
     throw new ApiError(
       response.status,
       payload?.error?.code || 'REQUEST_FAILED',
       payload?.error?.message || 'No se pudo completar la petición',
       payload?.error?.details
     )
+  }
+
+  if (shouldToast(path, method)) {
+    pushRequestToast({
+      tone: 'success',
+      title: 'Cambios guardados',
+      message: payload?.data?.message || 'La operacion se ha completado correctamente.',
+    })
   }
 
   return payload

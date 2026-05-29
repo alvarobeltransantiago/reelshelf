@@ -20,14 +20,14 @@ No existe rol admin en v1.
 | Ruta | Acceso | Descripción |
 | --- | --- | --- |
 | `/` | Todos | Landing pública con imagen hero, frase inspiradora y CTA contextual. |
-| `/library` | Usuario | Biblioteca personal con pestañas, filtros, cards, paginación y Top 10. |
+| `/library` | Usuario | Biblioteca personal con pestañas, buscador reactivo, cards, paginación y Top 10 por categoría. |
+| `/wishlist` | Usuario | Lista de deseos por categoría con CRUD y orden manual. |
 | `/login` | Visitante | Inicio de sesión. |
 | `/register` | Visitante | Registro. |
 | `/review/new` | Usuario | Crear reseña. |
 | `/review/:id` | Todos según visibilidad | Detalle de reseña con portada a la izquierda y contenido a la derecha. |
 | `/review/:id/edit` | Propietario | Editar reseña. |
 | `/u/:username` | Todos | Perfil minimalista con biografía y avatar; sin listado de reseñas. |
-| `/settings` | Usuario | Ajustes de cuenta y perfil. |
 | `*` | Todos | Not found. |
 
 El logo y el texto `Reelshelf` del navbar siempre redirigen a `/`.
@@ -46,7 +46,7 @@ El logo y el texto `Reelshelf` del navbar siempre redirigen a `/`.
 
 - El perfil público muestra avatar, username y campo de biografía.
 - El usuario propietario puede editar biografía y avatar desde su perfil.
-- El avatar puede ser URL externa o imagen subida como data URL.
+- El avatar se elige desde iconos predefinidos con estética de biblioteca digital.
 - La biografía tiene máximo 280 caracteres.
 - El perfil no muestra reseñas ni Top 10 en la v1 actual.
 
@@ -112,6 +112,12 @@ POST /auth/refresh
 ```text
 GET    /users/me/library
 PATCH  /users/me/top-reviews
+GET    /users/me/wishlist
+POST   /users/me/wishlist
+PATCH  /users/me/wishlist/reorder
+PATCH  /users/me/wishlist/:id
+DELETE /users/me/wishlist/:id
+GET    /users/me/backup
 GET    /users/:username
 GET    /users/:username/reviews
 PATCH  /users/me

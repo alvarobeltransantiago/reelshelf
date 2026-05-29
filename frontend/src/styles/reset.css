@@ -2,6 +2,8 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  user-select: none;
+  caret-color: transparent;
 }
 
 html {
@@ -22,6 +24,10 @@ blockquote {
 }
 
 body {
+  min-height: 100vh;
+}
+
+#root {
   min-height: 100vh;
 }
 
@@ -73,8 +79,12 @@ summary {
 
 input,
 textarea,
+select,
+[role='textbox'],
 [contenteditable='true'] {
   cursor: text;
+  user-select: text;
+  caret-color: auto;
 }
 
 ul,

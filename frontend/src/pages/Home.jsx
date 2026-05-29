@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async'
-import { useDeferredValue, useEffect, useRef, useState, startTransition } from 'react'
+import { useEffect, useRef, useState, startTransition } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 
@@ -14,22 +14,8 @@ import { CATEGORY_TABS } from '../utils/reviewOptions'
 import heroImage from '../assets/hero-library-table.png'
 import './Home.css'
 
-const SORT_OPTIONS = [
-  { value: 'newest', label: 'Más recientes' },
-  { value: 'oldest', label: 'Más antiguas' },
-  { value: 'rating_desc', label: 'Mejor nota' },
-  { value: 'rating_asc', label: 'Menor nota' },
-  { value: 'title_asc', label: 'Título A-Z' },
-  { value: 'author_asc', label: 'Autor A-Z' },
-  { value: 'top_rank', label: 'Top 10 primero' },
-]
-
-const SEARCH_FIELD_OPTIONS = [
-  { value: 'all', label: 'Todo' },
-  { value: 'title', label: 'Título' },
-  { value: 'author', label: 'Autor' },
-  { value: 'rating', label: 'Nota' },
-]
+const LIBRARY_CLIENT_PAGE_SIZE = 9
+const LIBRARY_FETCH_LIMIT = 500
 
 function moveReviewInList(reviews, draggedId, targetId) {
   const nextReviews = [...reviews]
@@ -106,33 +92,33 @@ export function LibraryHome() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || 'game',
-    q: searchParams.get('q') || '',
-    searchField: searchParams.get('searchField') || 'all',
     sort: searchParams.get('sort') || 'newest',
-    minRating: searchParams.get('minRating') || '',
     page: Number(searchParams.get('page') || 1),
   })
-  const deferredFilters = useDeferredValue(filters)
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     setFilters({
       category: searchParams.get('category') || 'game',
-      q: searchParams.get('q') || '',
-      searchField: searchParams.get('searchField') || 'all',
       sort: searchParams.get('sort') || 'newest',
-      minRating: searchParams.get('minRating') || '',
       page: Number(searchParams.get('page') || 1),
     })
   }, [searchParams])
 
   const libraryQuery = useQuery({
-    queryKey: ['my-library', deferredFilters],
-    queryFn: () => getMyLibrary(deferredFilters),
+    queryKey: ['my-library', filters.category, filters.sort],
+    queryFn: () =>
+      getMyLibrary({
+        category: filters.category,
+        sort: filters.sort,
+        page: 1,
+        limit: LIBRARY_FETCH_LIMIT,
+      }),
     enabled: isAuthenticated,
   })
 
   const rankingMutation = useMutation({
-    mutationFn: updateMyTopReviews,
+    mutationFn: ({ category, reviewIds }) => updateMyTopReviews(category, reviewIds),
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ['my-library'] })
     },
@@ -144,37 +130,41 @@ export function LibraryHome() {
 
       const params = new URLSearchParams()
       Object.entries(nextFilters).forEach(([key, value]) => {
-        const isDefaultSearchField = key === 'searchField' && value === 'all'
         const isDefaultSort = key === 'sort' && value === 'newest'
 
-        if (value && !(key === 'page' && value === 1) && !isDefaultSearchField && !isDefaultSort) {
+        if (value && key !== 'page' && !isDefaultSort) {
           params.set(key, String(value))
         }
       })
 
-      setSearchParams(params)
+      if (params.toString() !== searchParams.toString()) {
+        setSearchParams(params)
+      }
     })
   }
 
   function handleToggleTopReview(reviewId) {
-    const topReviews = libraryQuery.data?.data.topReviews || []
+    const topReviews = (libraryQuery.data?.data.topReviews || []).filter((review) => review.category === filters.category)
     const isAlreadyIncluded = topReviews.some((review) => review.id === reviewId)
     const nextIds = isAlreadyIncluded
       ? topReviews.filter((review) => review.id !== reviewId).map((review) => review.id)
       : [...topReviews.map((review) => review.id), reviewId].slice(0, 10)
 
-    rankingMutation.mutate(nextIds)
+    rankingMutation.mutate({ category: filters.category, reviewIds: nextIds })
   }
 
   function handleMoveTopReview(draggedId, targetId) {
-    const topReviews = libraryQuery.data?.data.topReviews || []
+    const topReviews = (libraryQuery.data?.data.topReviews || []).filter((review) => review.category === filters.category)
     const nextOrder = moveReviewInList(topReviews, draggedId, targetId).map((review) => review.id)
-    rankingMutation.mutate(nextOrder)
+    rankingMutation.mutate({ category: filters.category, reviewIds: nextOrder })
   }
 
   function handleRemoveTopReview(reviewId) {
-    const topReviews = libraryQuery.data?.data.topReviews || []
-    rankingMutation.mutate(topReviews.filter((review) => review.id !== reviewId).map((review) => review.id))
+    const topReviews = (libraryQuery.data?.data.topReviews || []).filter((review) => review.category === filters.category)
+    rankingMutation.mutate({
+      category: filters.category,
+      reviewIds: topReviews.filter((review) => review.id !== reviewId).map((review) => review.id),
+    })
   }
 
   if (isBootstrapping) {
@@ -191,27 +181,40 @@ export function LibraryHome() {
 
   const { reviews, topReviews, counts } = libraryQuery.data.data
   const activeCategory = CATEGORY_TABS.find((tab) => tab.value === filters.category)
-  const activeFilterCount = [filters.q, filters.minRating, filters.sort !== 'newest', filters.searchField !== 'all'].filter(Boolean).length
+  const activeTopReviews = topReviews.filter((review) => review.category === filters.category)
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase()
+  const filteredReviews = normalizedSearchTerm
+    ? reviews.filter((review) => {
+        const haystack = [review.title, review.author, review.body].filter(Boolean).join(' ').toLowerCase()
+        return haystack.includes(normalizedSearchTerm)
+      })
+    : reviews
+  const totalPages = Math.max(1, Math.ceil(filteredReviews.length / LIBRARY_CLIENT_PAGE_SIZE))
+  const currentPage = Math.min(filters.page, totalPages)
+  const visibleReviews = filteredReviews.slice(
+    (currentPage - 1) * LIBRARY_CLIENT_PAGE_SIZE,
+    currentPage * LIBRARY_CLIENT_PAGE_SIZE
+  )
   const tutorialSteps = [
     {
       targetRef: heroRef,
-      title: 'Tu biblioteca empieza aquí',
+      title: 'Tu biblioteca empieza aqui',
       description: 'Desde esta cabecera entiendes el tono general de tu archivo personal.',
     },
     {
       targetRef: tabsRef,
-      title: 'Pestañas por universo',
-      description: 'Cada pestaña separa videojuegos, películas, series y libros.',
+      title: 'Pestanas por universo',
+      description: 'Cada pestana separa videojuegos, peliculas, series y libros.',
     },
     {
       targetRef: gridRef,
       title: 'Reseñas compactas',
-      description: 'Aquí ves tus fichas más recientes con acceso directo a la reseña completa y al Top 10.',
+      description: 'Aqui ves tus fichas con busqueda reactiva por titulo, autor y descripcion.',
     },
     {
       targetRef: topShelfRef,
-      title: 'Top 10 editable',
-      description: 'Mueve, reordena y limpia tus favoritos hasta que el ranking se sienta verdaderamente tuyo.',
+      title: 'Top 10 por categoria',
+      description: 'Cada categoria tiene su propio ranking editable y reordenable.',
     },
   ]
 
@@ -221,19 +224,25 @@ export function LibraryHome() {
         <title>Mi biblioteca | Reelshelf</title>
       </Helmet>
 
-      <TutorialSpotlight enabled={isAuthenticated} steps={tutorialSteps} />
+      <TutorialSpotlight enabled={isAuthenticated} force={searchParams.get('tour') === '1'} steps={tutorialSteps} />
 
       <div ref={heroRef} className="home__hero home__hero--library">
-        <h1>Una estantería personal</h1>
+        <h1>Una librería personal</h1>
+        <Link className="home__new-review" to={`/review/new?category=${filters.category}`}>
+          Nueva reseña
+        </Link>
       </div>
 
-      <div ref={tabsRef} className="home__tabs" role="tablist" aria-label="Categorías de biblioteca">
+      <div ref={tabsRef} className="home__tabs" role="tablist" aria-label="Categorias de biblioteca">
         {CATEGORY_TABS.map((tab) => (
           <button
             key={tab.value}
             type="button"
             className={`home__tab ${filters.category === tab.value ? 'home__tab--active' : ''}`}
-            onClick={() => updateFilters({ ...filters, category: tab.value, page: 1 })}
+            onClick={() => {
+              setSearchTerm('')
+              updateFilters({ ...filters, category: tab.value, page: 1 })
+            }}
           >
             <span>{tab.label}</span>
             <strong>{counts[tab.value]}</strong>
@@ -243,115 +252,60 @@ export function LibraryHome() {
 
       <div className="home__library-layout">
         <div className="home__library-main">
-          <section className="home__control-deck" aria-label="Filtros de biblioteca">
+          <section className="home__control-deck" aria-label="Buscador de biblioteca">
             <div className="home__control-copy">
               <h2>{activeCategory?.label}</h2>
-              <span>{libraryQuery.data.meta.total} {libraryQuery.data.meta.total === 1 ? 'resultado' : 'resultados'}</span>
+              <span>{filteredReviews.length} {filteredReviews.length === 1 ? 'resultado' : 'resultados'}</span>
             </div>
 
-            <div className="home__control-grid">
+            <div className="home__control-grid home__control-grid--simple">
               <label className="home__field home__field--search">
                 <span>Buscar</span>
                 <input
                   type="search"
-                  value={filters.q}
-                  placeholder="Título, autor o nota"
-                  onChange={(event) => updateFilters({ ...filters, q: event.target.value, page: 1 })}
+                  value={searchTerm}
+                  placeholder="Título, autor o descripción"
+                  onChange={(event) => {
+                    setSearchTerm(event.target.value)
+                    setFilters((current) => ({ ...current, page: 1 }))
+                  }}
                 />
               </label>
-
-              <label className="home__field">
-                <span>Campo</span>
-                <select
-                  value={filters.searchField}
-                  onChange={(event) => updateFilters({ ...filters, searchField: event.target.value, page: 1 })}
-                >
-                  {SEARCH_FIELD_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="home__field">
-                <span>Orden</span>
-                <select value={filters.sort} onChange={(event) => updateFilters({ ...filters, sort: event.target.value, page: 1 })}>
-                  {SORT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="home__field">
-                <span>Nota</span>
-                <select
-                  value={filters.minRating}
-                  onChange={(event) => updateFilters({ ...filters, minRating: event.target.value, page: 1 })}
-                >
-                  <option value="">Todas</option>
-                  {[10, 9, 8, 7, 6, 5].map((rating) => (
-                    <option key={rating} value={rating}>
-                      {rating}+
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <Button
-                variant="secondary"
-                className="home__clear-button"
-                disabled={!activeFilterCount}
-                onClick={() =>
-                  updateFilters({
-                    ...filters,
-                    q: '',
-                    searchField: 'all',
-                    sort: 'newest',
-                    minRating: '',
-                    page: 1,
-                  })
-                }
-              >
-                Limpiar
-              </Button>
             </div>
           </section>
 
           <div ref={gridRef}>
-            {reviews.length ? (
+            {visibleReviews.length ? (
               <div className="home__grid">
-                {reviews.map((review) => (
+                {visibleReviews.map((review) => (
                   <ReviewCard
                     key={review.id}
                     review={review}
                     showTopControls
-                    isTopReview={topReviews.some((item) => item.id === review.id)}
+                    isTopReview={activeTopReviews.some((item) => item.id === review.id)}
                     onToggleTopReview={handleToggleTopReview}
                   />
                 ))}
               </div>
             ) : (
-              <p className="home__state">Todavía no tienes entradas en esta pestaña. Crea una reseña y empezamos a poblarla.</p>
+              <p className="home__state">No hay resultados en esta categoria.</p>
             )}
           </div>
 
           <div className="home__pagination">
             <Button
               variant="secondary"
-              disabled={libraryQuery.data.meta.page <= 1}
+              disabled={currentPage <= 1}
               onClick={() => updateFilters({ ...filters, page: filters.page - 1 })}
             >
               Anterior
             </Button>
             <span>
-              Página {libraryQuery.data.meta.page} de {libraryQuery.data.meta.totalPages}
+              Página {currentPage} de {totalPages}
             </span>
             <Button
               variant="secondary"
-              disabled={libraryQuery.data.meta.page >= libraryQuery.data.meta.totalPages}
+              disabled={currentPage >= totalPages}
               onClick={() => updateFilters({ ...filters, page: filters.page + 1 })}
             >
               Siguiente
@@ -361,7 +315,8 @@ export function LibraryHome() {
 
         <div ref={topShelfRef}>
           <TopShelfPanel
-            reviews={topReviews}
+            title={`Top 10 ${activeCategory?.label || ''}`}
+            reviews={activeTopReviews}
             isSaving={rankingMutation.isPending}
             onMove={handleMoveTopReview}
             onRemove={handleRemoveTopReview}

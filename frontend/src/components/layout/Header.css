@@ -12,7 +12,7 @@
   min-height: var(--header-height);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: auto minmax(12rem, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: var(--space-4);
   align-items: center;
 }
@@ -36,7 +36,7 @@
 
 .site-header__brand:hover {
   transform: translateY(-1px);
-  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  background: var(--color-hover-bg);
 }
 
 .site-header__brand strong {
@@ -62,40 +62,48 @@
   display: block;
 }
 
-.site-header__search input {
-  width: 100%;
-  min-height: 2.65rem;
-  padding: 0 0.95rem;
-  border: var(--border-thin) solid color-mix(in srgb, var(--color-border) 84%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
-  color: var(--color-text);
-  transition:
-    border-color var(--transition-base),
-    box-shadow var(--transition-base),
-    background var(--transition-base);
-}
-
-.site-header__search input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 22%, transparent);
-}
-
 .site-header__actions,
 .site-header__user,
-.site-header__guest {
+.site-header__guest,
+.site-header__nav {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
+}
+
+.site-header__nav {
+  justify-content: flex-start;
+}
+
+.site-header__nav a {
+  min-height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+}
+
+.site-header__nav a:hover {
+  background: var(--color-hover-bg);
+  color: var(--color-hover-text);
+}
+
+.site-header__actions {
+  justify-content: flex-end;
 }
 
 .site-header__user,
 .site-header__guest {
-  padding: 0.3rem;
+  padding: 0.35rem;
   border: var(--border-thin) solid color-mix(in srgb, var(--color-border) 84%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+}
+
+.site-header__user {
+  gap: var(--space-4);
 }
 
 .site-header__guest a,
@@ -114,8 +122,8 @@
 
 .site-header__guest a:hover,
 .site-header__user a:hover {
-  background: var(--color-accent);
-  color: var(--color-accent-text);
+  background: var(--color-hover-bg);
+  color: var(--color-hover-text);
   transform: translateY(-1px);
 }
 
@@ -129,6 +137,76 @@
   overflow: hidden;
   border-radius: 50%;
   padding: 0;
+}
+
+.site-header__logout {
+  min-width: 2.45rem;
+  padding: 0;
+  font-size: 1.05rem;
+}
+
+.site-header__theme-toggle {
+  width: 2.65rem;
+  min-width: 2.65rem;
+  padding: 0;
+}
+
+.site-header__theme-icon,
+.site-header__logout-icon {
+  position: relative;
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.site-header__theme-icon--sun {
+  background: var(--color-gold);
+  border: 0.18rem solid var(--color-wood);
+  border-radius: 0.25rem;
+  box-shadow:
+    0 -0.42rem 0 -0.2rem var(--color-gold),
+    0 0.42rem 0 -0.2rem var(--color-gold),
+    -0.42rem 0 0 -0.2rem var(--color-gold),
+    0.42rem 0 0 -0.2rem var(--color-gold);
+}
+
+.site-header__theme-icon--moon {
+  border-radius: 0.25rem;
+  background: var(--color-text);
+  box-shadow: inset -0.38rem 0.1rem 0 var(--color-accent);
+}
+
+.site-header__theme-icon--moon::after {
+  content: '';
+  position: absolute;
+  right: 0.08rem;
+  top: 0.18rem;
+  width: 0.22rem;
+  height: 0.22rem;
+  background: var(--color-surface);
+  box-shadow:
+    -0.42rem 0.24rem 0 var(--color-surface),
+    -0.08rem 0.64rem 0 var(--color-surface);
+}
+
+.site-header__logout-icon {
+  width: 1.1rem;
+  height: 1.3rem;
+  border: 0.16rem solid var(--color-wood);
+  border-radius: 0.16rem;
+  background:
+    linear-gradient(90deg, var(--color-wood-dark) 0 35%, color-mix(in srgb, var(--color-wood-dark) 72%, var(--color-wood)) 35% 100%);
+}
+
+.site-header__logout-icon::after {
+  content: '';
+  position: absolute;
+  right: 0.15rem;
+  top: 0.48rem;
+  width: 0.18rem;
+  height: 0.18rem;
+  border-radius: 50%;
+  background: var(--color-gold);
 }
 
 .site-header__avatar img {
@@ -150,6 +228,11 @@
   .site-header__actions {
     justify-content: space-between;
     flex-wrap: wrap;
+  }
+
+  .site-header__nav {
+    order: 3;
+    overflow-x: auto;
   }
 
   .site-header__user,

@@ -41,6 +41,20 @@
   gap: var(--space-2);
 }
 
+.review-form__category-lock {
+  display: grid;
+  gap: var(--space-2);
+  padding: 0.65rem 0.8rem;
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface-alt) 68%, var(--color-surface));
+}
+
+.review-form__category-lock span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
 .review-form__select select {
   min-height: 2.6rem;
   padding: 0.65rem 0.8rem;

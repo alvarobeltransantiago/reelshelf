@@ -7,6 +7,13 @@
   --color-accent: #7fa2c9;
   --color-accent-text: #0f151d;
   --color-border: #2f4155;
+  --color-hover-bg: color-mix(in srgb, #7fa2c9 16%, #18212b);
+  --color-hover-border: color-mix(in srgb, #7fa2c9 72%, #2f4155);
+  --color-hover-text: #f6f8fb;
+  --color-gold: #f0c35a;
+  --color-wood: #c79654;
+  --color-wood-dark: #5a3427;
+  --color-success: #3e8f68;
   --color-error: #ff7b7b;
   --color-overlay: rgba(9, 12, 17, 0.82);
 }
@@ -20,6 +27,13 @@
   --color-accent: #18181b;
   --color-accent-text: #fafaf8;
   --color-border: #d8d2c5;
+  --color-hover-bg: color-mix(in srgb, #18181b 9%, #ffffff);
+  --color-hover-border: color-mix(in srgb, #18181b 42%, #d8d2c5);
+  --color-hover-text: #0f1115;
+  --color-gold: #c58d2f;
+  --color-wood: #8f6437;
+  --color-wood-dark: #4d3321;
+  --color-success: #2f8f62;
   --color-error: #cf3f31;
   --color-overlay: rgba(24, 24, 27, 0.18);
 }
@@ -46,7 +60,7 @@ a {
 }
 
 a:hover {
-  color: var(--color-accent);
+  color: var(--color-hover-text);
 }
 
 .theme-dark body {
@@ -55,6 +69,8 @@ a:hover {
     linear-gradient(180deg, #15202b 0%, #11161d 35%, #0d1218 100%);
 }
 
-#root {
+.app-shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }

@@ -9,6 +9,7 @@ import { registerUser } from '../api/auth'
 import useAuthStore from '../store/authStore'
 import Button from '../components/common/Button'
 import Input from '../components/common/Input'
+import registerArtwork from '../assets/auth-register-book.png'
 import './Auth.css'
 
 const registerSchema = z
@@ -30,7 +31,8 @@ function Register() {
     mutationFn: registerUser,
     onSuccess(data) {
       setSession(data)
-      navigate('/')
+      window.localStorage.removeItem('reelshelf-library-tour-completed')
+      navigate('/library?tour=1')
     },
   })
 
@@ -55,9 +57,13 @@ function Register() {
       </Helmet>
 
       <div className="auth-page__panel">
-        <div className="auth-page__copy">
-          <p>Empieza tu biblioteca</p>
-          <h1>Crea una cuenta para publicar reseñas con voz propia.</h1>
+        <div
+          className="auth-page__copy auth-page__copy--art"
+          style={{ '--auth-artwork': `url(${registerArtwork})` }}
+          aria-label="Ilustración de un libro abierto con pluma"
+        >
+          <p>Reelshelf</p>
+          <h1>Registrarse</h1>
         </div>
 
         <form
@@ -75,7 +81,7 @@ function Register() {
           />
           {mutation.isError ? <p className="auth-page__error">{mutation.error.message}</p> : null}
           <Button type="submit" loading={mutation.isPending} fullWidth>
-            Crear cuenta
+            Registrarse
           </Button>
           <p>
             ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>

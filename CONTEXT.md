@@ -150,6 +150,16 @@ Backend:
 "start": "node server.js"
 ```
 
+Migraciones actuales:
+
+```text
+001_create_users.sql
+002_create_reviews.sql
+003_create_refresh_tokens.sql
+004_expand_reviews_for_personal_library.sql
+005_category_top_and_wishlist.sql
+```
+
 Frontend:
 
 ```json

@@ -9,6 +9,7 @@ import { loginUser } from '../api/auth'
 import useAuthStore from '../store/authStore'
 import Button from '../components/common/Button'
 import Input from '../components/common/Input'
+import loginArtwork from '../assets/auth-login-door.png'
 import './Auth.css'
 
 const loginSchema = z.object({
@@ -47,9 +48,13 @@ function Login() {
       </Helmet>
 
       <div className="auth-page__panel">
-        <div className="auth-page__copy">
-          <p>Vuelve a tu biblioteca</p>
-          <h1>Inicia sesión para editar reseñas, borradores y perfil.</h1>
+        <div
+          className="auth-page__copy auth-page__copy--art"
+          style={{ '--auth-artwork': `url(${loginArtwork})` }}
+          aria-label="Ilustración de una entrada a una biblioteca personal"
+        >
+          <p>Reelshelf</p>
+          <h1>Iniciar sesión</h1>
         </div>
 
         <form className="auth-page__form" onSubmit={handleSubmit((values) => mutation.mutate(values))}>
@@ -57,7 +62,7 @@ function Login() {
           <Input label="Contraseña" type="password" error={errors.password?.message} {...register('password')} />
           {mutation.isError ? <p className="auth-page__error">{mutation.error.message}</p> : null}
           <Button type="submit" loading={mutation.isPending} fullWidth>
-            Entrar
+            Iniciar sesión
           </Button>
           <p>
             ¿No tienes cuenta? <Link to="/register">Créala aquí</Link>

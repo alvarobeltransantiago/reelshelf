@@ -1,0 +1,79 @@
+.toast-viewport {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  bottom: clamp(0.75rem, 2vw, 1.5rem);
+  z-index: 80;
+  display: grid;
+  gap: var(--space-2);
+  width: min(100% - 1.5rem, 24rem);
+  pointer-events: none;
+}
+
+.toast {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3);
+  border: var(--border-thin) solid var(--toast-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--toast-bg) 90%, var(--color-surface));
+  color: var(--color-text);
+  box-shadow: var(--shadow-elevated);
+  pointer-events: auto;
+  animation: toast-in 220ms ease;
+}
+
+.toast--success {
+  --toast-bg: var(--color-success);
+  --toast-border: color-mix(in srgb, var(--color-success) 60%, var(--color-border));
+}
+
+.toast--error {
+  --toast-bg: var(--color-error);
+  --toast-border: color-mix(in srgb, var(--color-error) 62%, var(--color-border));
+}
+
+.toast--info {
+  --toast-bg: var(--color-accent);
+  --toast-border: color-mix(in srgb, var(--color-accent) 62%, var(--color-border));
+}
+
+.toast__copy {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.toast__copy strong,
+.toast__copy span {
+  color: var(--color-accent-text);
+}
+
+.toast__copy span {
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.toast button {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-accent-text) 16%, transparent);
+  color: var(--color-accent-text);
+  cursor: pointer;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

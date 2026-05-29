@@ -1,11 +1,11 @@
 import './TopShelfPanel.css'
 
-function TopShelfPanel({ reviews, isSaving, onMove, onRemove }) {
+function TopShelfPanel({ title = 'Favoritos', reviews, isSaving, onMove, onRemove }) {
   return (
     <aside className="top-shelf">
       <div className="top-shelf__header">
         <p>Top 10</p>
-        <h2>Favoritos</h2>
+        <h2>{title}</h2>
       </div>
 
       {reviews.length ? (
@@ -53,7 +53,7 @@ function TopShelfPanel({ reviews, isSaving, onMove, onRemove }) {
           ))}
         </ol>
       ) : (
-        <p className="top-shelf__empty">Tu Top 10 está vacío. Añade títulos desde la biblioteca.</p>
+        <p className="top-shelf__empty">Tu Top 10 esta vacio. Anade titulos desde la biblioteca.</p>
       )}
     </aside>
   )

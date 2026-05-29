@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { createReview, getCoverSuggestions, getReview, updateReview } from '../api/reviews'
 import useAuthStore from '../store/authStore'
@@ -15,7 +15,7 @@ import TagInput from '../components/review/TagInput'
 import Spinner from '../components/common/Spinner'
 import AspectRatingsEditor from '../components/review/AspectRatingsEditor'
 import CoverSuggestionPicker from '../components/review/CoverSuggestionPicker'
-import { createDefaultAspectRatings, getAspectFields } from '../utils/reviewOptions'
+import { createDefaultAspectRatings, getAspectFields, getCategoryLabel } from '../utils/reviewOptions'
 import { slugify } from '../utils/slugify'
 import './ReviewForm.css'
 
@@ -33,8 +33,12 @@ const reviewSchema = z.object({
 
 function ReviewForm() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { id } = useParams()
   const isEditing = Boolean(id)
+  const initialCategory = ['game', 'movie', 'series', 'book'].includes(searchParams.get('category'))
+    ? searchParams.get('category')
+    : 'game'
   const currentUser = useAuthStore((state) => state.user)
 
   const {
@@ -49,7 +53,7 @@ function ReviewForm() {
     defaultValues: {
       title: '',
       author: '',
-      category: 'game',
+      category: initialCategory,
       cover_url: '',
       rating: 7,
       aspect_ratings: createDefaultAspectRatings('game'),
@@ -94,6 +98,12 @@ function ReviewForm() {
       setValue('aspect_ratings', createDefaultAspectRatings(selectedCategory))
     }
   }, [isEditing, selectedCategory, setValue])
+
+  useEffect(() => {
+    if (!isEditing) {
+      setValue('category', initialCategory)
+    }
+  }, [initialCategory, isEditing, setValue])
 
   useEffect(() => {
     if (data) {
@@ -141,15 +151,22 @@ function ReviewForm() {
         </div>
 
         <div className="review-form__grid">
-          <label className="review-form__select">
-            <span>Categoría</span>
-            <select {...register('category')}>
-              <option value="game">Videojuego</option>
-              <option value="movie">Película</option>
-              <option value="series">Serie</option>
-              <option value="book">Libro</option>
-            </select>
-          </label>
+          {isEditing ? (
+            <label className="review-form__select">
+              <span>Categoría</span>
+              <select {...register('category')}>
+                <option value="game">Videojuego</option>
+                <option value="movie">Película</option>
+                <option value="series">Serie</option>
+                <option value="book">Libro</option>
+              </select>
+            </label>
+          ) : (
+            <div className="review-form__category-lock">
+              <span>Categoría</span>
+              <strong>{getCategoryLabel(selectedCategory)}</strong>
+            </div>
+          )}
 
           <label className="review-form__select">
             <span>Estado</span>

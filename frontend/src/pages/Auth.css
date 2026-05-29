@@ -5,9 +5,9 @@
 }
 
 .auth-page__panel {
-  width: min(100%, 54rem);
+  width: min(100%, 60rem);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(19rem, 24rem);
+  grid-template-columns: minmax(20rem, 1fr) minmax(19rem, 24rem);
   gap: var(--space-5);
   padding: var(--space-5);
   border: var(--border-thin) solid var(--color-border);
@@ -22,6 +22,35 @@
   gap: var(--space-3);
 }
 
+.auth-page__copy--art {
+  position: relative;
+  min-height: 30rem;
+  align-content: end;
+  overflow: hidden;
+  padding: var(--space-4);
+  border: var(--border-thin) solid color-mix(in srgb, var(--color-border) 78%, transparent);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg) 10%, transparent) 0%, color-mix(in srgb, var(--color-bg) 84%, transparent) 100%),
+    var(--auth-artwork) center / cover;
+  box-shadow: inset 0 -7rem 6rem color-mix(in srgb, var(--color-bg) 58%, transparent);
+}
+
+.auth-page__copy--art::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-bg) 18%, transparent), transparent 50%),
+    linear-gradient(180deg, transparent 48%, color-mix(in srgb, var(--color-bg) 72%, transparent));
+  pointer-events: none;
+}
+
+.auth-page__copy--art > * {
+  position: relative;
+  z-index: 1;
+}
+
 .auth-page__copy p {
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -29,13 +58,26 @@
 }
 
 .auth-page__copy h1 {
-  font-size: clamp(1.85rem, 4vw, 3rem);
-  line-height: 0.96;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
 }
 
 .auth-page__form {
   display: grid;
   gap: var(--space-4);
+}
+
+.auth-page__form a {
+  color: var(--color-accent);
+  font-weight: 800;
+  transition:
+    color var(--transition-base),
+    text-shadow var(--transition-base);
+}
+
+.auth-page__form a:hover {
+  color: var(--color-hover-text);
+  text-shadow: 0 0 0.75rem color-mix(in srgb, var(--color-accent) 38%, transparent);
 }
 
 .auth-page__error {
@@ -46,6 +88,10 @@
   .auth-page__panel {
     grid-template-columns: 1fr;
   }
+
+  .auth-page__copy--art {
+    min-height: 18rem;
+  }
 }
 
 @media (max-width: 560px) {
@@ -55,5 +101,9 @@
 
   .auth-page__panel {
     padding: var(--space-4);
+  }
+
+  .auth-page__copy--art {
+    min-height: 14rem;
   }
 }

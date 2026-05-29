@@ -1,5 +1,8 @@
 .page-wrapper {
   width: min(calc(100% - 1.5rem), var(--container-width));
   margin: 0 auto;
-  padding-top: var(--space-5);
+  flex: 1;
+  display: grid;
+  align-content: start;
+  padding: var(--space-5) 0 var(--space-6);
 }

@@ -7,12 +7,13 @@ function Button({
   loading = false,
   disabled = false,
   fullWidth = false,
+  className = '',
   ...props
 }) {
   return (
     <button
       type={type}
-      className={`button button--${variant} ${fullWidth ? 'button--full-width' : ''}`}
+      className={`button button--${variant} ${fullWidth ? 'button--full-width' : ''} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
